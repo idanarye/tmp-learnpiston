@@ -1,16 +1,21 @@
 #[macro_export]
 macro_rules! initialized_object {
-    ( $name:ident 
-      $( let $field:ident : $typ:ty = $value:expr ; )*
-      ) => {
-        pub struct $name {
+    (
+        $vis:vis struct $name:ident {
+        $(
+            $field_vis:vis $field:ident : $typ:ty = $value:expr,
+        )*
+    }) => {
+        // #[derive(Debug)]
+        $vis struct $name {
             $(
-                $field: $typ,
-             )*
+                $field_vis $field : $typ
+             ),*
         }
+
         impl $name {
-            pub fn new() -> $name {
-                return $name {
+            $vis fn new() -> Self {
+                Self {
                     $(
                         $field: $value
                      ),*

@@ -3,8 +3,10 @@ extern crate piston_window;
 // use piston_window::*;
 use piston_window::math::*;
 
-initialized_object! {Object
-    let pos: Vec2d = [0.0, 0.0];
+initialized_object! {
+    pub struct Object {
+        pos: Vec2d = [0.0, 0.0],
+    }
 }
 
 #[allow(dead_code)]

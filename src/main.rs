@@ -1,3 +1,5 @@
+#![feature(macro_vis_matcher)]
+
 extern crate piston_window;
 
 #[macro_use]
@@ -6,7 +8,7 @@ extern crate learnpiston;
 use piston_window::*;
 use piston_window::math::*;
 
-fn main() {
+pub fn main() {
     let mut window: PistonWindow = WindowSettings::new("learnpiston", [600, 800]).exit_on_esc(true).build().unwrap();
     let mut game = Game::new();
     while let Some(e) = window.next() {
@@ -26,15 +28,17 @@ key_map! {Keys
     d_right = Right;
 }
 
-initialized_object! {Game
-    let rotation: f64 = 0.0;
-    let size: f64 = 100.0;
-    let pos: Vec2d = [100.0, 100.0];
-    let speed: Vec2d = [0.0, 0.0];
-    let acl: f64 = 1000.0;
-    let brake: f64 = 0.4;
-    let abs_min: f64 = 10.0;
-    let keys: Keys = Keys::new();
+initialized_object! {
+    struct Game {
+        rotation: f64 = 0.0,
+        size: f64 = 100.0,
+        pos: Vec2d = [100.0, 100.0],
+        speed: Vec2d = [0.0, 0.0],
+        acl: f64 = 1000.0,
+        brake: f64 = 0.4,
+        abs_min: f64 = 10.0,
+        keys: Keys = Keys::new(),
+    }
 }
 
 impl Game {
