@@ -1,6 +1,7 @@
 #![feature(macro_vis_matcher)]
 
 extern crate piston_window;
+extern crate find_folder;
 
 #[macro_use]
 extern crate learnpiston;
@@ -8,15 +9,18 @@ extern crate learnpiston;
 use piston_window::*;
 use piston_window::math::*;
 
+use learnpiston::object::Object;
+
 pub fn main() {
-    let mut window: PistonWindow = WindowSettings::new("learnpiston", [600, 800]).exit_on_esc(true).build().unwrap();
-    let mut game = Game::new();
-    while let Some(e) = window.next() {
-        match e {
-            Event::Update(upd) => game.on_update(upd),
-            Event::Render(ren) => game.on_draw(ren, &mut window, e),
-            Event::Input(inp) => game.on_input(inp),
-            _ => {}
+    let mut game = Game::default();
+    let mut window: PistonWindow = WindowSettings::new("learnpiston", game.area_size).exit_on_esc(true).build().unwrap();
+    game.on_load(&mut window);
+    while let Some(inp) = window.next() {
+        match inp {
+            Input::Update(upd) => game.on_update(upd),
+            Input::Resize(width, height) => game.on_resize(width, height),
+            Input::Render(ren) => game.on_draw(ren, &mut window, inp),
+            inp => game.on_input(inp),
         }
     }
 }
@@ -28,11 +32,11 @@ key_map! {Keys
     d_right = Right;
 }
 
-initialized_object! {
+super_default! {
     struct Game {
-        rotation: f64 = 0.0,
-        size: f64 = 100.0,
-        pos: Vec2d = [100.0, 100.0],
+        area_size: [u32; 2] = [600, 800],
+        player: Object,
+        rot_speed: f64 = 0.01,
         speed: Vec2d = [0.0, 0.0],
         acl: f64 = 1000.0,
         brake: f64 = 0.4,
@@ -42,12 +46,26 @@ initialized_object! {
 }
 
 impl Game {
+    fn on_load(&mut self, window: &mut PistonWindow) {
+        let assets_dir = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap();
+        let sprite_file = assets_dir.join("xspr5.png");
+        println!("{:?}", sprite_file);
+        self.player.sprite = Some(Texture::from_path(
+            &mut window.factory,
+            &sprite_file,
+            Flip::None,
+            &TextureSettings::new()).unwrap());
+    }
+
+    fn on_resize(&mut self, width: u32, height: u32) {
+        self.area_size = [width, height];
+    }
+
     fn on_input(&mut self, inp: Input) {
         self.keys.update(&inp);
     }
-    fn on_update(&mut self, upd: UpdateArgs) {
-        self.rotation += upd.dt;
 
+    fn on_update(&mut self, upd: UpdateArgs) {
         let mut acl: Vec2d = [0.0, 0.0];
         if self.keys.d_up {
             acl[1] -= self.acl;
@@ -55,12 +73,19 @@ impl Game {
         if self.keys.d_down {
             acl[1] += self.acl;
         }
+
+        let mut rot = 0.0;
         if self.keys.d_left {
-            acl[0] -= self.acl;
+            rot -= self.rot_speed;
+            // acl[0] -= self.acl;
         }
         if self.keys.d_right {
-            acl[0] += self.acl;
+            rot += self.rot_speed;
+            // acl[0] += self.acl;
         }
+        self.player.rotation += rot;
+
+        let acl = transform_vec(rotate_radians(self.player.rotation), acl);
 
         for (s, a) in self.speed.iter_mut().zip(acl.iter()) {
             *s *= self.brake.powf(upd.dt);
@@ -68,41 +93,21 @@ impl Game {
                 *s = 0.0;
             }
             *s += upd.dt * *a;
-            /*
-            let brake_mgn = upd.dt * self.brake;
-            if 0.0 < *s {
-                if *s < brake_mgn {
-                    *s = 0.0;
-                } else {
-                    *s -= brake_mgn;
-                }
-            } else {
-                if -*s < brake_mgn {
-                    *s = 0.0;
-                } else {
-                    *s += brake_mgn;
-                }
-            }
-            */
         }
 
-        for ((p, s), d) in self.pos.iter_mut().zip(self.speed.iter_mut()).zip([600.0, 800.0].iter()) {
-            if 0.0 < *s && *d <= *p + upd.dt * *s + self.size / 2.0 {
+        for ((p, s), d) in self.player.pos.iter_mut().zip(self.speed.iter_mut()).zip(self.area_size.iter()) {
+            if 0.0 < *s && *d as f64 <= *p + upd.dt * *s + self.player.size / 2.0 {
                 *s = -*s;
-            } else if *s < 0.0 && *p - upd.dt * *s - self.size / 2.0 <= 0.0 {
+            } else if *s < 0.0 && *p - upd.dt * *s - self.player.size / 2.0 <= 0.0 {
                 *s = -*s;
             }
             *p += upd.dt * *s;
         }
-        // self.pos[0] += 1.0;
     }
     fn on_draw<E: GenericEvent>(&self, _ren: RenderArgs, window: &mut PistonWindow, e: E) {
         window.draw_2d(&e, |c, g| {
             clear([0.5, 1.0, 0.5, 1.0], g);
-            let center = c.transform.trans(self.pos[0], self.pos[1]);
-            let square = rectangle::square(0.0, 0.0, self.size);
-            let red = [1.0, 0.0, 0.0, 1.0];
-            rectangle(red, square, center.rot_rad(self.rotation).trans(-50.0, -50.0), g);
+            self.player.render(g, c.transform);
         });
     }
 }

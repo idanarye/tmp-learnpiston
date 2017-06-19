@@ -1,28 +1,65 @@
 #[macro_export]
-macro_rules! initialized_object {
+macro_rules! super_default {
+    // Collect all attributes in parenthesis so we can parse them without interfering with $vis
     (
+        @collect_attrs
+        ( $( #[$attrs:meta] )* )
+        #[$attr:meta]
+        $( $tail:tt )*
+    ) => { super_default! {
+            @collect_attrs
+            ( $( #[$attrs] )* #[$attr] )
+            $( $tail )*
+        }
+    };
+
+    // The actual rule that creates the struct
+    (
+        @collect_attrs
+        ( $( #[$attr:meta] )* )
         $vis:vis struct $name:ident {
         $(
-            $field_vis:vis $field:ident : $typ:ty = $value:expr,
-        )*
+            $fvis:vis $field:ident : $typ:ty $( = $value:expr )*
+        ),* $(,)*
     }) => {
-        // #[derive(Debug)]
+        $( #[$attr] )*
         $vis struct $name {
             $(
-                $field_vis $field : $typ
+                $fvis $field : $typ
              ),*
         }
 
-        impl $name {
-            $vis fn new() -> Self {
+        impl Default for $name {
+            fn default() -> Self {
                 Self {
                     $(
-                        $field: $value
+                        $field: super_default! { @decide_field_default $( $value )* }
                      ),*
                 }
             }
         }
-    }
+    };
+
+    // Default value for fields that have their default value set as an expression
+    (
+        @decide_field_default $value:expr
+    ) => {
+        $value
+    };
+
+    // Default value for fields that don't have default expression - use the type's default
+    (
+        @decide_field_default
+    ) => {
+        Default::default()
+    };
+
+    // Entry point
+    (
+        $( $tt:tt )*
+    ) => {
+        super_default! { @collect_attrs () $( $tt )* }
+    };
 }
 
 #[macro_export]

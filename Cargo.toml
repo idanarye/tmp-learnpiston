@@ -4,4 +4,8 @@ version = "0.1.0"
 authors = ["Idan Arye <idan@weka.io>"]
 
 [dependencies]
-piston_window = "0.62.0"
+piston_window = "0.67.0"
+find_folder = "*"
+gfx_device_gl = "*"
+gfx = "*"
+piston2d-gfx_graphics = "*"
