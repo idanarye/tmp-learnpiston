@@ -85,10 +85,10 @@ macro_rules! key_map {
             fn update(&mut self, inp: &Input) {
                 match *inp {
                     $(
-                        Input::Press(Button::Keyboard(Key::$key)) => {
+                        Input::Button(ButtonArgs { state: ButtonState::Press, button: Button::Keyboard(Key::$key), .. }) => {
                             self.$key_name = true;
                         }
-                        Input::Release(Button::Keyboard(Key::$key)) => {
+                        Input::Button(ButtonArgs { state: ButtonState::Release, button: Button::Keyboard(Key::$key), .. }) => {
                             self.$key_name = false;
                         }
                      )*

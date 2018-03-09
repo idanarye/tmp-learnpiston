@@ -5,7 +5,7 @@ use piston_window::*;
 // use piston_window::*;
 use piston_window::math::*;
 
-use gfx_device_gl::{Resources, CommandBuffer};
+use gfx_device_gl::{Resources, /*CommandBuffer*/};
 use gfx_graphics::GfxGraphics;
 
 super_default! {

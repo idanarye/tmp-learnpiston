@@ -13,14 +13,16 @@ use learnpiston::object::Object;
 
 pub fn main() {
     let mut game = Game::default();
-    let mut window: PistonWindow = WindowSettings::new("learnpiston", game.area_size).exit_on_esc(true).build().unwrap();
+    let mut window: PistonWindow = WindowSettings::new("learnpiston", game.area_size).srgb(false).exit_on_esc(true).build().unwrap();
     game.on_load(&mut window);
     while let Some(inp) = window.next() {
         match inp {
-            Input::Update(upd) => game.on_update(upd),
-            Input::Resize(width, height) => game.on_resize(width, height),
-            Input::Render(ren) => game.on_draw(ren, &mut window, inp),
-            inp => game.on_input(inp),
+            Event::Loop(Loop::Update(upd)) => game.on_update(upd),
+            Event::Loop(Loop::Render(ren)) => game.on_draw(ren, &mut window, inp),
+            Event::Loop(_) => {},
+            Event::Input(Input::Resize(width, height)) => game.on_resize(width, height),
+            Event::Input(inp) => game.on_input(inp),
+            Event::Custom(..) => {},
         }
     }
 }

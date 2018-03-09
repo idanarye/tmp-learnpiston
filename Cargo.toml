@@ -1,11 +1,11 @@
 [package]
+authors = ["Idan Arye <idan@weka.io>"]
 name = "learnpiston"
 version = "0.1.0"
-authors = ["Idan Arye <idan@weka.io>"]
 
 [dependencies]
-piston_window = "0.67.0"
-find_folder = "*"
-gfx_device_gl = "*"
-gfx = "*"
-piston2d-gfx_graphics = "*"
+find_folder = "0.3.0"
+gfx = "0.17.1"
+gfx_device_gl = "0.15.0"
+piston2d-gfx_graphics = "0.48.0"
+piston_window = "0.75.0"
